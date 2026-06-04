@@ -1,5 +1,8 @@
 from typing import TypedDict
 from langgraph.graph import StateGraph, END
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class AgentState(TypedDict):
     input: str
@@ -36,9 +39,7 @@ def search_node(state: AgentState) -> AgentState:
 def summarise_node(state: AgentState) -> AgentState:
     from groq import Groq
     import os
-    from dotenv import load_dotenv
 
-    load_dotenv()
     client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
     result_list = []
@@ -61,9 +62,7 @@ def summarise_node(state: AgentState) -> AgentState:
 def synthesise_node(state: AgentState) -> AgentState:
     from groq import Groq
     import os
-    from dotenv import load_dotenv
 
-    load_dotenv()
     client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
     print(f"\n[synthesise_node] Synthesising {len(state.get('summaries', []))} summaries into final answer")
@@ -94,7 +93,7 @@ def should_search_more(state: AgentState) -> str:
     return "summarise"
 
 
-def read_url_node(state: AgentState) -> AgentState:
+def read_url_node(state: AgentState) -> AgentState: # Bottleneck: read_url_node avg ~4-6s (sequential HTTP fetches), summarise_node spikes on complex queries
     import httpx
     import re
 
@@ -128,5 +127,20 @@ graph.add_edge("summarise", "synthesise")
 graph.add_edge("synthesise", END)
 app = graph.compile()
 # Test 1
-result1 = app.invoke({"input": "How cobenfy is performing on patiences with oHCM", "output": "", "summaries":[], "search_iteration": 0, "error": "", "search_results": [], "url_contents": []})
-print(result1["output"])
+
+
+list = [
+    "How cobenfy is performing on patiences with oHCM",
+    "what are the buzzwords of AI engineering or agentic ai system building",
+    "What are the best practices for building agentic AI systems",
+    "What is the latest research on retrieval augmented generation in AI?",
+    "What is the limitation of RAG in AI? What are the open research questions?",
+    "What is better approach than RAG for building agentic AI systems?",
+    "Give me latest news on Iran and US relations",
+    "What are the latest trends in AI research in 2026?"
+    "How much impact there will be on Full Stack developer Job market due to AI agents in next 5 years?"
+    "What to do as a technical lead or software engineer to prepare for the rise of AI agents in software development industry?"
+]
+for question in list:
+    result = app.invoke({"input": question, "output": "", "summaries":[], "search_iteration": 0, "error": "", "search_results": [], "url_contents": []})
+    print(f"\nQuestion: '{question}'\n ' Final answer : '{result['output']}\n{'-'*80}")
