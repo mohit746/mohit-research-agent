@@ -94,7 +94,7 @@ def should_search_more(state: AgentState) -> str:
 
 
 def read_url_node(state: AgentState) -> AgentState: # Bottleneck: read_url_node avg ~4-6s (sequential HTTP fetches), summarise_node spikes on complex queries
-    import httpx
+    import httpx 
     import re
 
     print(f"\n[read_url_node] Fetching top {min(3, len(state.get('search_results', [])))} URLs")
@@ -126,21 +126,8 @@ graph.add_edge("search", "read_url")
 graph.add_edge("summarise", "synthesise")
 graph.add_edge("synthesise", END)
 app = graph.compile()
-# Test 1
 
-
-list = [
-    "How cobenfy is performing on patiences with oHCM",
-    "what are the buzzwords of AI engineering or agentic ai system building",
-    "What are the best practices for building agentic AI systems",
-    "What is the latest research on retrieval augmented generation in AI?",
-    "What is the limitation of RAG in AI? What are the open research questions?",
-    "What is better approach than RAG for building agentic AI systems?",
-    "Give me latest news on Iran and US relations",
-    "What are the latest trends in AI research in 2026?"
-    "How much impact there will be on Full Stack developer Job market due to AI agents in next 5 years?"
-    "What to do as a technical lead or software engineer to prepare for the rise of AI agents in software development industry?"
-]
-for question in list:
-    result = app.invoke({"input": question, "output": "", "summaries":[], "search_iteration": 0, "error": "", "search_results": [], "url_contents": []})
-    print(f"\nQuestion: '{question}'\n ' Final answer : '{result['output']}\n{'-'*80}")
+if __name__ == "__main__":
+    question = input("Enter your question: ")
+    result = app.invoke({"input": question, "output": "", "summaries": [], "search_iteration": 0, "error": "", "search_results": [], "url_contents": []})
+    print(f"\nQuestion: '{question}'\nFinal answer: {result['output']}\n{'-'*80}")
